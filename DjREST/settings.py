@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -106,3 +107,10 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+
+CELERY_BEAT_SCHEDULE = {
+    'check-inactive-habits': {
+        'task': 'habits.tasks.check_inactive_habits',
+        'schedule': crontab(minute=0, hour=0),  # каждый день в полночь
+    },
+}
