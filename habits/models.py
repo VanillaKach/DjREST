@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from users.models import CustomUser
+from datetime import timedelta
+from django.utils import timezone
 
 def validate_associated_habit_and_reward(value):
     if value.associated_habit and value.reward:
@@ -33,6 +35,7 @@ class Habit(models.Model):
     reward = models.CharField(max_length=200, blank=True, null=True, verbose_name='Вознаграждение')
     execution_time = models.PositiveIntegerField(validators=[validate_execution_time], verbose_name='Время на выполнение (в секундах)')
     is_public = models.BooleanField(default=False, verbose_name='Признак публичности')
+    last_completed = models.DateTimeField(null=True, blank=True, verbose_name='Последнее выполнение')
 
     def clean(self):
         if self.associated_habit:
@@ -40,6 +43,13 @@ class Habit(models.Model):
             validate_pleasant_habit_for_association(self.associated_habit)
         if self.is_pleasant:
             validate_pleasant_habit_fields(self)
+
+    def save(self, *args, **kwargs):
+        # Проверка, что прошло не более 7 дней с последнего выполнения
+        if self.last_completed:
+            if (timezone.now() - self.last_completed).days > 7:
+                raise ValidationError('Привычка не может быть неактивной более 7 дней.')
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.user.email}: {self.action} в {self.time} в {self.place}'
