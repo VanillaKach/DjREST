@@ -68,3 +68,29 @@
     ```bash
         docker-compose down
     ```
+## Деплой на удалённый сервер
+
+### Требования
+
+- Удалённый сервер (Ubuntu 22.04).
+- Установленные `python3`, `pip`, `nginx`, `supervisor`, `postgresql`, `redis`.
+- Пользователь `deploy` с правами на запуск приложения.
+- SSH-ключи для доступа к серверу.
+
+### Инструкции по настройке сервера
+
+1.  Подключитесь к серверу по SSH.
+2.  Установите Python, pip, venv, nginx, supervisor, postgresql, redis.
+3.  Создайте пользователя `deploy`.
+4.  Клонируйте проект в `/home/deploy/app`.
+5.  Установите зависимости: `pip install -r requirements.txt`.
+6.  Настройте `.env` файл.
+7.  Настройте `gunicorn` и `supervisor` для запуска приложения.
+8.  Настройте `nginx` как обратный прокси.
+
+### Инструкции по запуску GitHub Actions
+
+1.  Добавьте SSH-ключ в GitHub Secrets как `SSH_PRIVATE_KEY`.
+2.  Добавьте `HOST`, `USERNAME`, `SECRET_KEY` в Secrets.
+3.  При пуше в ветку `deploy_setup` запустится workflow.
+4.  Приложение автоматически протестируется и задеплоится на сервер.
