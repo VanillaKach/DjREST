@@ -5,7 +5,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Копируем файл зависимостей
-COPY requirements.txt .
+COPY requirements.txt
 
 # Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Команда, которая будет выполняться при запуске контейнера
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "gunicorn", "DjREST.wsgi:application", "--bind", "0.0.0.0:8000"]
