@@ -2,48 +2,67 @@ name: Deploy Django App
 
 on:
   push:
-    branches: [ deploy_setup ]  # Или develop, если хочешь сразу туда
+    branches: [ deploy_setup ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Run tests
-      run: python manage.py test
-      env:
-        DJANGO_SETTINGS_MODULE: DjREST.settings
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        DEBUG: 0
+      - name: Check Django installation
+        run: python -c "import django; print('Django version:', django.get_version())"
+
+      - name: Collect static (optional, but good practice)
+        run: python manage.py collectstatic --noinput
+        env:
+          DJANGO_SETTINGS_MODULE: DjREST.settings
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: "False"
+
+      - name: Run tests
+        run: python manage.py test --settings=DjREST.settings
+        env:
+          DJANGO_SETTINGS_MODULE: DjREST.settings
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: "False"
+          # Переопределяем переменные для тестов, чтобы использовать SQLite
+          DB_ENGINE: django.db.backends.sqlite3
+          DB_NAME: db_test.sqlite3
+          # Эти переменные не будут использоваться, если DB_ENGINE != postgresql
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
 
   deploy:
-    needs: test  # Запускается только если job 'test' прошёл успешно
+    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/deploy_setup'  # Условие: только для ветки deploy_setup
+    if: github.ref == 'refs/heads/deploy_setup'
     steps:
-    - name: Deploy to Server via SSH
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd /home/deploy/app
-          git fetch origin
-          git reset --hard origin/deploy_setup
-          source venv/bin/activate
-          pip install -r requirements.txt
-          python manage.py migrate --settings=DjREST.settings
-          sudo supervisorctl restart djrest
-          sudo nginx -s reload
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/deploy/app
+            git fetch origin
+            git reset --hard origin/deploy_setup
+            source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate --settings=DjREST.settings
+            sudo supervisorctl restart djrest
+            sudo nginx -s reload
