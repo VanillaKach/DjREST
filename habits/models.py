@@ -4,21 +4,16 @@ from users.models import CustomUser
 from datetime import timedelta
 from django.utils import timezone
 
-def validate_associated_habit_and_reward(value):
-    if value.associated_habit and value.reward:
-        raise ValidationError('Нельзя одновременно указывать связанную привычку и вознаграждение.')
+# --- Импортируем универсальные валидаторы ---
+from .validators import (
+    validate_associated_habit_and_reward,
+    validate_pleasant_habit_for_association,
+    validate_pleasant_habit_fields
+)
 
 def validate_execution_time(value):
     if value > 120:
         raise ValidationError('Время выполнения не должно превышать 120 секунд.')
-
-def validate_pleasant_habit_for_association(value):
-    if value and not value.is_pleasant:
-        raise ValidationError('Связанная привычка должна быть приятной.')
-
-def validate_pleasant_habit_fields(value):
-    if value.is_pleasant and (value.reward or value.associated_habit):
-        raise ValidationError('Приятная привычка не может иметь вознаграждение или связанную привычку.')
 
 def validate_frequency(value):
     if value > 7:
@@ -39,16 +34,18 @@ class Habit(models.Model):
 
     def clean(self):
         super().clean()
-        # Переносим проверку сюда
+        # Проверка, что прошло не более 7 дней с последнего выполнения
         if self.last_completed:
             if (timezone.now() - self.last_completed).days > 7:
                 raise ValidationError('Привычка не может быть неактивной более 7 дней.')
 
         # Вызов других проверок
+        # validate_associated_habit_and_reward ожидает объект модели
+        validate_associated_habit_and_reward(self)
         if self.associated_habit:
-            validate_associated_habit_and_reward(self)
             validate_pleasant_habit_for_association(self.associated_habit)
         if self.is_pleasant:
+            # validate_pleasant_habit_fields ожидает объект модели
             validate_pleasant_habit_fields(self)
 
     def save(self, *args, **kwargs):
