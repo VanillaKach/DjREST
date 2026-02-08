@@ -38,6 +38,13 @@ class Habit(models.Model):
     last_completed = models.DateTimeField(null=True, blank=True, verbose_name='Последнее выполнение')
 
     def clean(self):
+        super().clean()
+        # Переносим проверку сюда
+        if self.last_completed:
+            if (timezone.now() - self.last_completed).days > 7:
+                raise ValidationError('Привычка не может быть неактивной более 7 дней.')
+
+        # Вызов других проверок
         if self.associated_habit:
             validate_associated_habit_and_reward(self)
             validate_pleasant_habit_for_association(self.associated_habit)
@@ -45,10 +52,8 @@ class Habit(models.Model):
             validate_pleasant_habit_fields(self)
 
     def save(self, *args, **kwargs):
-        # Проверка, что прошло не более 7 дней с последнего выполнения
-        if self.last_completed:
-            if (timezone.now() - self.last_completed).days > 7:
-                raise ValidationError('Привычка не может быть неактивной более 7 дней.')
+        # Вызываем clean перед сохранением
+        self.clean()
         super().save(*args, **kwargs)
 
     def __str__(self):

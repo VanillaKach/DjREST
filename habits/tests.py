@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
@@ -48,5 +49,5 @@ class HabitTestCase(APITestCase):
 
     def test_validate_last_completed(self):
         self.habit.last_completed = timezone.now() - timedelta(days=8)
-        with self.assertRaises(Exception):
-            self.habit.full_clean()
+        with self.assertRaises(ValidationError):  # Уточняем тип исключения
+            self.habit.full_clean()  # Теперь вызовет ValidationError из clean()

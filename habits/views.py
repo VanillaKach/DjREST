@@ -13,6 +13,9 @@ class HabitViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return Habit.objects.filter(user=user)
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 class PublicHabitListAPIView(generics.ListAPIView):
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated]
