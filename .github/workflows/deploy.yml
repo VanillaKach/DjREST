@@ -18,7 +18,6 @@ jobs:
 #      - name: Install setuptools and pkg_resources
 #        run: |
 #          pip install setuptools wheel
-#          pip install pkg_resources
 
       - name: Install dependencies
         run: |
