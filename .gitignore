@@ -6,7 +6,7 @@ db.sqlite3
 media/
 .DS_Store
 .idea/
-.env
+#.env
 *.log
 celerybeat-schedule
 *.pid
