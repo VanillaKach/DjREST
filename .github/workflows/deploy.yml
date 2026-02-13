@@ -15,6 +15,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install setuptools and pkg_resources
+        run: |
+          pip install setuptools wheel
+          pip install pkg_resources
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
