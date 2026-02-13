@@ -20,31 +20,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Check Django installation
-        run: python -c "import django; print('Django version:', django.get_version())"
-
-      - name: Collect static (optional, but good practice)
-        run: python manage.py collectstatic --noinput
-        env:
-          DJANGO_SETTINGS_MODULE: DjREST.settings
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DEBUG: "False"
-
       - name: Run tests
         run: python manage.py test --settings=DjREST.settings
         env:
           DJANGO_SETTINGS_MODULE: DjREST.settings
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DEBUG: "False"
-          # Переопределяем переменные для тестов, чтобы использовать SQLite
-          DB_ENGINE: django.db.backends.sqlite3
-          DB_NAME: db_test.sqlite3
-          # Эти переменные не будут использоваться, если DB_ENGINE != postgresql
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
+          ALLOWED_HOSTS: "localhost,127.0.0.1"
 
   deploy:
     needs: test
@@ -63,6 +45,8 @@ jobs:
             git reset --hard origin/deploy_setup
             source venv/bin/activate
             pip install -r requirements.txt
-            python manage.py migrate --settings=DjREST.settings
+            # Важно: передать SECRET_KEY в окружение для collectstatic/migrate
+            SECRET_KEY=${{ secrets.SECRET_KEY }} python manage.py collectstatic --noinput
+            SECRET_KEY=${{ secrets.SECRET_KEY }} python manage.py migrate --settings=DjREST.settings
             sudo supervisorctl restart djrest
             sudo nginx -s reload
