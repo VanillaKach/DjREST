@@ -39,6 +39,11 @@ jobs:
     steps:
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
@@ -49,7 +54,6 @@ jobs:
             git reset --hard origin/deploy_setup
             source venv/bin/activate
             pip install -r requirements.txt
-            # Важно: передать SECRET_KEY в окружение для collectstatic/migrate
             SECRET_KEY=${{ secrets.SECRET_KEY }} python manage.py collectstatic --noinput
             SECRET_KEY=${{ secrets.SECRET_KEY }} python manage.py migrate --settings=DjREST.settings
             sudo supervisorctl restart djrest
