@@ -16,7 +16,33 @@
 Приложение доступно по адресу:  
 👉 **http://128.204.77.243**  
 
+# DjREST — Habits Tracker Backend (Dockerized)
 
+[![CI/CD Pipeline](https://github.com/VanillaKach/DjREST/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/VanillaKach/DjREST/actions)
+
+Django REST Framework backend для трекера привычек с поддержкой Celery, Redis, PostgreSQL и Docker Compose.
+
+## 🌐 Демо
+Приложение доступно по адресу:  
+👉 http://178.128.235.14
+
+---
+
+## 🚀 Локальный запуск (через Docker Compose)
+
+### Предварительные требования
+
+- Docker
+- Docker Compose Plugin (не старый `docker-compose`)
+- `.env` файл (см. `.env.example`)
+
+### Шаги
+
+1. **Клонируйте репозиторий**:
+   ```bash
+   git clone https://github.com/VanillaKach/DjREST.git
+   cd DjREST
+   
 # Django-проект с Docker Compose
 
 Этот проект демонстрирует, как запустить Django-приложение с PostgreSQL, Redis, Celery и Celery Beat с использованием Docker Compose.
