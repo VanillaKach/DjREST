@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [develop, main]
+    branches: [deploy_setup, develop]
   pull_request:
     branches: [develop]
 
@@ -48,7 +48,7 @@ jobs:
 
   deploy:
     needs: lint-test-build
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/deploy_setup' || github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -62,7 +62,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/deploy/djrest
-            git pull origin develop
+            git pull origin deploy_setup
             docker compose down
             docker compose pull
             docker compose up -d --build
